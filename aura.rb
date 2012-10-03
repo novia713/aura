@@ -39,20 +39,17 @@ begin
 #DEBUG  
 #pp f.meta
 #exit
-
+ 				puts "#{f.meta['server']}".pur
+ 
         no = 1
          f.each do |line|
-            if line.match('Drupal (\d\.\d\d)') then
-              puts "#{f.meta['server']}".pur
-              if f.meta['x-varnish-cache'] then
-                puts "this site uses Varnish".green
-              end
+            if line.match('Drupal (\d\.\d)') then
               print line.dark_green
               #puts "consider to delete the CHANGELOG.txt file"
               break
             end
             no +=1
-            break if no > 5
+            break if no > 7
         end
     end
     
@@ -60,15 +57,20 @@ begin
 rescue
   #TODO: Varnish
   puts "no CHANGELOG.txt found".yellow
-  open(ARGV[0]) do |f|
-  
-#DEBUG
-#pp f.meta
-#exit
+  begin
+		open(ARGV[0]) do |f|
+		
+	#DEBUG
+	#pp f.meta
+	#exit
 
-    if f.meta['server'] then puts f.meta['server'].pur; end
-    if f.meta['x-powered-by'] then puts f.meta['x-powered-by'].green;end
-    if f.meta['x-generator'] then puts f.meta['x-generator'].dark_green; end
- 
+		  if f.meta['server'] then puts f.meta['server'].pur; end
+		  if f.meta['x-powered-by'] then puts f.meta['x-powered-by'].green;end
+		  if f.meta['x-generator'] then puts f.meta['x-generator'].dark_green; end
+		  if f.meta['x-drupal-cache'] then puts "x-drupal-cache: #{f.meta['x-drupal-cache']}".blue; end
+		  if !f.meta['x-generator'].match('Drupal') then puts "this site seems not to run Drupal"; end
+		end
+  rescue
+    puts "this site seems not to run Drupal"
   end
 end
