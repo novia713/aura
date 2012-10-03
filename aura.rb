@@ -1,19 +1,19 @@
 =begin
 
-Copyright (C) 2012  Leandro Vázquez Cervantes (leandro@leandro.org)
+Copyright (C) 2012 Leandro Vázquez Cervantes (leandro@leandro.org)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 =end
 
@@ -28,18 +28,35 @@ class String
     def blue; colorize(self, "\e[1m\e[34m"); end
     def dark_blue; colorize(self, "\e[34m"); end
     def pur; colorize(self, "\e[1m\e[35m"); end
-    def colorize(text, color_code)  "#{color_code}#{text}\e[0m" end
+    def colorize(text, color_code) "#{color_code}#{text}\e[0m" end
 end
+
+#args check
+def check_args
+  if (!ARGV[0]) then
+    puts "provide an URL as argument. Example: ruby aura.rb http://drupal.org"
+		puts "don't use https"
+		exit
+  end
+	if !ARGV[0].match('^http://') then
+		puts "provide an URL as argument. Example: ruby aura.rb http://drupal.org"
+		puts "don't use https"
+		exit
+	end
+end
+
+check_args
+#end args check
 
 #first we try changelog.txt
 begin
   #TODO: PHP version
     open(ARGV[0] + "/CHANGELOG.txt") do |f|
     
-#DEBUG  
+#DEBUG
 #pp f.meta
 #exit
- 				puts "#{f.meta['server']}".pur
+  puts "#{f.meta['server']}".pur
  
         no = 1
          f.each do |line|
@@ -58,18 +75,18 @@ rescue
   #TODO: Varnish
   puts "no CHANGELOG.txt found".yellow
   begin
-		open(ARGV[0]) do |f|
-		
-	#DEBUG
-	#pp f.meta
-	#exit
+open(ARGV[0]) do |f|
 
-		  if f.meta['server'] then puts f.meta['server'].pur; end
-		  if f.meta['x-powered-by'] then puts f.meta['x-powered-by'].green;end
-		  if f.meta['x-generator'] then puts f.meta['x-generator'].dark_green; end
-		  if f.meta['x-drupal-cache'] then puts "x-drupal-cache: #{f.meta['x-drupal-cache']}".blue; end
-		  if !f.meta['x-generator'].match('Drupal') then puts "this site seems not to run Drupal"; end
-		end
+#DEBUG
+#pp f.meta
+#exit
+
+if f.meta['server'] then puts f.meta['server'].pur; end
+if f.meta['x-powered-by'] then puts f.meta['x-powered-by'].green;end
+if f.meta['x-generator'] then puts f.meta['x-generator'].dark_green; end
+if f.meta['x-drupal-cache'] then puts "x-drupal-cache: #{f.meta['x-drupal-cache']}".blue; end
+if !f.meta['x-generator'].match('Drupal') then puts "this site seems not to run Drupal"; end
+end
   rescue
     puts "this site seems not to run Drupal"
   end
