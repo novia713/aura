@@ -20,6 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 require 'open-uri'
 require 'pp'
 
+$url = nil
+
 class String
     def red; colorize(self, "\e[1m\e[31m"); end
     def green; colorize(self, "\e[1m\e[32m"); end
@@ -38,11 +40,15 @@ def check_args
 		puts "don't use https"
 		exit
   end
+  if ARGV[0].match('^https://') then
+  	puts "use http, don't use https"
+  	exit
+  end
 	if !ARGV[0].match('^http://') then
-		puts "provide an URL as argument. Example: ruby aura.rb http://drupal.org"
-		puts "don't use https"
-		exit
+    $url = "http://" + ARGV[0].to_s
 	end
+	if !$url then $url = ARGV[0]; end
+	puts "scanning #{$url} ...".blue
 end
 
 check_args
@@ -51,12 +57,13 @@ check_args
 #first we try changelog.txt
 begin
   #TODO: PHP version
-    open(ARGV[0] + "/CHANGELOG.txt") do |f|
+    open($url + "/CHANGELOG.txt") do |f|
     
 #DEBUG
 #pp f.meta
 #exit
-  puts "#{f.meta['server']}".pur
+        puts "changelog found"
+        puts "#{f.meta['server']}".pur
  
         no = 1
          f.each do |line|
@@ -75,19 +82,28 @@ rescue
   #TODO: Varnish
   puts "no CHANGELOG.txt found".yellow
   begin
-open(ARGV[0]) do |f|
-
-#DEBUG
-#pp f.meta
-#exit
-
-if f.meta['server'] then puts f.meta['server'].pur; end
-if f.meta['x-powered-by'] then puts f.meta['x-powered-by'].green;end
-if f.meta['x-generator'] then puts f.meta['x-generator'].dark_green; end
-if f.meta['x-drupal-cache'] then puts "x-drupal-cache: #{f.meta['x-drupal-cache']}".blue; end
-if !f.meta['x-generator'].match('Drupal') then puts "this site seems not to run Drupal"; end
-end
+		open( $url) do |f|
+		  raise "i cant reach the index.php"
+      
+			if f.meta['server'] != nil then 
+				puts f.meta['server'].pur
+			end
+			if f.meta['x-powered-by'] != nil then 
+				puts f.meta['x-powered-by'].green
+			end
+			if f.meta['x-generator'] != nil then 
+				puts f.meta['x-generator'].dark_green
+			end
+			if f.meta['x-drupal-cache'] != nil then 
+				puts "x-drupal-cache: #{f.meta['x-drupal-cache']}".blue
+			end
+			if !f.meta['x-generator'].match('Drupal') then 
+				puts "no Drupal headers found"
+		  end
+			
+			
+		end
   rescue
-    puts "this site seems not to run Drupal"
+    puts "unable to open site :-( ", $!
   end
 end
