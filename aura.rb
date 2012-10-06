@@ -16,7 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 =end
-
+require "net/http"
+require "uri"
 require 'open-uri'
 require 'pp'
 
@@ -41,6 +42,7 @@ def check_args
 		exit
   end
   if ARGV[0].match('^https://') then
+    #open(uri,:ssl_verify_mode => OpenSSL::SSL::VERIFY_NONE)
   	puts "use http, don't use https"
   	exit
   end
@@ -57,13 +59,15 @@ check_args
 #first we try changelog.txt
 begin
   #TODO: PHP version
-    open($url + "/CHANGELOG.txt") do |f|
+    open($url + "/CHANGELOG.txt", "User-Agent" => "Mozilla/5.0 (Windows NT 6.0; rv:12.0) Gecko/20100101 Firefox/12.0 FirePHP/0.7.1") do |f|
     
 #DEBUG
 #pp f.meta
 #exit
-        puts "changelog found"
+        if f.meta["content-type"].match("text/plain") then puts "changelog found"; else return; end
         puts "#{f.meta['server']}".pur
+        if f.meta['x-varnish-cache'] then puts "x-varnish-cache: #{f.meta['x-varnish-cache']}".green; end
+        if f.meta['x-cache'] then puts "x-cache: #{f.meta['x-cache']}".green; end
  
         no = 1
          f.each do |line|
@@ -82,8 +86,10 @@ rescue
   #TODO: Varnish
   puts "no CHANGELOG.txt found".yellow
   begin
-		open( $url) do |f|
-		  raise "i cant reach the index.php"
+		open( $url + "index.php", "User-Agent" => "Mozilla/5.0 (Windows NT 6.0; rv:12.0) Gecko/20100101 Firefox/12.0 FirePHP/0.7.1", ) do |f|
+		  raise "i cant reach the index.php, maybe it uses an inusual port or isn't Drupal"
+		  
+		  pp f.meta
       
 			if f.meta['server'] != nil then 
 				puts f.meta['server'].pur
