@@ -86,28 +86,40 @@ rescue
   #TODO: Varnish
   puts "no CHANGELOG.txt found".yellow
   begin
-		open( $url + "index.php", "User-Agent" => "Mozilla/5.0 (Windows NT 6.0; rv:12.0) Gecko/20100101 Firefox/12.0 FirePHP/0.7.1", ) do |f|
-		  raise "i cant reach the index.php, maybe it uses an inusual port or isn't Drupal"
+		open( $url ) do |f|
 		  
-		  pp f.meta
+		  #pp f.meta
       
 			if f.meta['server'] != nil then 
 				puts f.meta['server'].pur
 			end
 			if f.meta['x-powered-by'] != nil then 
-				puts f.meta['x-powered-by'].green
+				puts "x-powered-by: #{f.meta['x-powered-by']}".green
 			end
 			if f.meta['x-generator'] != nil then 
-				puts f.meta['x-generator'].dark_green
+				puts "x-generator: #{f.meta['x-generator']}".dark_green
 			end
 			if f.meta['x-drupal-cache'] != nil then 
 				puts "x-drupal-cache: #{f.meta['x-drupal-cache']}".blue
 			end
-			if !f.meta['x-generator'].match('Drupal') then 
+			if f.meta['x-generator'] && !f.meta['x-generator'].match('Drupal') then 
 				puts "no Drupal headers found"
 		  end
-			
-			
+		  
+		  if !f.meta['x-generator'] then
+				js = nil
+				f.each do |line|
+				  if line.match('Drupal') then
+				  	js = 'yes'
+				  end
+				end
+		
+				if !js then
+				  puts "this site seems not to be Drupal"
+				else
+				  puts "its Drupal, but Drupal version unknown".red
+				end
+			end	
 		end
   rescue
     puts "unable to open site :-( ", $!
