@@ -16,8 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 =end
-require "net/http"
-require "uri"
+#require "net/http"
+#require "uri"
 require 'open-uri'
 require 'pp'
 
@@ -66,6 +66,7 @@ begin
 #exit
         if f.meta["content-type"].match("text/plain") then puts "changelog found"; else return; end
         puts "#{f.meta['server']}".pur
+        if f.meta['x-powered-by'] then puts "x-powered-by: #{f.meta['x-powered-by']}".green; end
         if f.meta['x-varnish-cache'] then puts "x-varnish-cache: #{f.meta['x-varnish-cache']}".green; end
         if f.meta['x-cache'] then puts "x-cache: #{f.meta['x-cache']}".green; end
  
@@ -108,17 +109,26 @@ rescue
 		  
 		  if !f.meta['x-generator'] then
 				js = nil
+				meta_generator = nil
 				f.each do |line|
 				  if line.match('Drupal') then
 				  	js = 'yes'
 				  end
+				  
+				  if  line.match('meta name="Generator" content="Drupal 7') then
+				    meta_generator='yes'
+				  end
 				end
 		
-				if !js then
-				  puts "this site seems not to be Drupal"
+				if !js && !meta_generator then
+				  puts "this site seems not to be Drupal".red
+				elsif meta_generator then
+				  puts "meta generator (html tag): Drupal 7".green
+					exit			
 				else
 				  puts "its Drupal, but Drupal version unknown".red
 				end
+				
 			end	
 		end
   rescue
