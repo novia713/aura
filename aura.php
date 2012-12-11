@@ -30,12 +30,12 @@ etc ...
 **********/
 class Aura
 {
-		/**
-		* Colorizes strings
-		* @param string $str text to colorize
-		* @param string $color color with colorize
-		* @return string
-		*/
+    /**
+     * Colorizes strings
+     * @param string $str text to colorize
+     * @param string $color color with colorize
+     * @return string
+     */
     function colorize($str, $color)
     {
         switch ($color) {
@@ -61,10 +61,10 @@ class Aura
         return "\033[" . $n . "m" . $str . "\033[37m\r\n";
     }
     
-		/**
-		* Checks sanity of url as argument
-		* @return canonical url or exits the program
-		*/
+    /**
+     * Checks sanity of url as argument
+     * @return canonical url or exits the program
+     */
     function check_args()
     {
         global $argv, $argc;
@@ -96,8 +96,7 @@ class Aura
     #first we try changelog.txt
     function get_changelog($checked_url)
     {
-        $out = "";
-        
+        $out  = "";
         $html = @file_get_contents($checked_url . "/CHANGELOG.txt");
         if (!$html)
             return false;
@@ -106,8 +105,7 @@ class Aura
             //print_r($item_header);
             if (preg_match('/Content-Type(.*)/', $item_header, $res)) {
                 if (strstr($res[1], 'text/plain')) {
-                    $out .= "changelog found \n";
-                    $out = $this->colorize($out, 'orange');
+                    $out = $this->colorize("changelog found \n", 'orange');
                 }
             }
             if (stristr($item_header, 'server')) {
@@ -125,7 +123,7 @@ class Aura
         }
         
         if (preg_match('/Drupal (\d\.\d)/', $html, $res)) {
-            $out .= "Drupal version: " . $res[1];
+            $out .= $this->colorize("Drupal version: " . $res[1], 'blue');
         }
         
         $out .= " \n";
@@ -135,11 +133,13 @@ class Aura
     
     function get_index($checked_url)
     {
-        $out = "no CHANGELOG.txt found \n";
-        $out = $this->colorize($out, 'pur');
+        $out       = "";
+        $generator = null;
+        $out       = $this->colorize("no CHANGELOG.txt found \n", 'pur');
         
         #if no changelog.txt found, we scan index.php headers
         $html = @file_get_contents($checked_url);
+        //print_r($http_response_header);
         if (!$html)
             return false;
         foreach ($http_response_header as $item_header) {
@@ -154,23 +154,26 @@ class Aura
             }
             if (stristr($item_header, 'x-generator')) {
                 $out .= "$item_header \n";
+                $generator = 1;
             }
             if (stristr($item_header, 'x-generator') && (!stristr($item_header, 'Drupal'))) {
                 $out .= "no Drupal headers found \n";
             }
+            
         }
         
         #last, the html meta way
-        $js = $meta_generator = null;
-        if (stristr($item_header, 'x-generator')) {
-            foreach ($html as $line) {
-                if (stristr($line, 'Drupal')) {
-                    $js = 1;
-                }
-                if (stristr($line, 'meta name="Generator" content="Drupal 7')) {
-                    $meta_generator = 1;
-                }
+        if (!$generator) {
+        
+            $js = $meta_generator = null;
+            if (stristr($html, 'Drupal')) {
+                $js = 1;
             }
+            if (stristr($html, 'meta name="Generator" content="Drupal 7')) {
+                $meta_generator = 1;
+            }
+            
+            
             if (!$js && !$meta_generator) {
                 $out .= "this site seems not to be Drupal \n";
             } else if ($meta_generator) {
@@ -178,10 +181,9 @@ class Aura
             } else {
                 $out .= "its Drupal, but Drupal version unknown \n";
             }
+            
         }
-        
-        
-        $out .= " \n";
+        $out .= "\n";
         return $out;
     }
 }
