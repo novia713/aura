@@ -2,6 +2,8 @@
 <?php
 /*********
 
+@author Leandro <leandro@leandro.org>
+
 Copyright (C) 2012 Leandro Vázquez Cervantes (leandro@leandro.org)
 
 This program is free software: you can redistribute it and/or modify
@@ -17,9 +19,23 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+
+Usage
+=====
+
+php aura.php drupal.org
+php aura.php groups.drupal.org
+etc ...
+
 **********/
 class Aura
 {
+		/**
+		* Colorizes strings
+		* @param string $str text to colorize
+		* @param string $color color with colorize
+		* @return string
+		*/
     function colorize($str, $color)
     {
         switch ($color) {
@@ -45,6 +61,10 @@ class Aura
         return "\033[" . $n . "m" . $str . "\033[37m\r\n";
     }
     
+		/**
+		* Checks sanity of url as argument
+		* @return canonical url or exits the program
+		*/
     function check_args()
     {
         global $argv, $argc;
