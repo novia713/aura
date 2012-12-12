@@ -30,13 +30,17 @@ etc ...
 **********/
 class Aura
 {
+
+		public $url = null;
+		
+		
     /**
      * Colorizes strings
      * @param string $str text to colorize
      * @param string $color color with colorize
      * @return string
      */
-    function colorize($str, $color)
+    public function colorize($str, $color)
     {
         switch ($color) {
             case 'red':
@@ -65,39 +69,36 @@ class Aura
      * Checks sanity of url as argument
      * @return canonical url or exits the program
      */
-    function check_args()
+    public function __construct()
     {
         global $argv, $argc;
-        $url = null;
         
-        if (!@$argv[1]) {
+        if (!@$argv[1] || !strstr(@$argv[1], ".")) {
             print "provide an URL as argument. Example: ruby aura.rb http://drupal.org \n";
-            print "don't use https \n";
-            die();
+            print "use http, don't use https \n";
+            exit();
         }
         
         if (preg_match('/^https:/', @$argv[1], $res)) {
             print "use http, don't use https \n";
-            die();
+            exit();
         }
         
-        if (preg_match('/^http:/', @$argv[1])) {
-            $url = "http://" . $argv[1];
+        if (!preg_match('/^http:/', @$argv[1])) {
+            $this->url = "http://" . $argv[1];
         }
         
-        if (!$url) {
-            $url = (@$argv[1]) ? "http://" . @$argv[1] : null;
-        }
+        if (!$this->url) $this->url = $argv[1];
         
-        print "scanning $url ... \n";
-        return $url;
+        print $this->colorize("scanning $this->url ... \n", 'orange');
+        return $this->url;
     }
     
     #first we try changelog.txt
-    function get_changelog($checked_url)
+    public function get_changelog()
     {
         $out  = "";
-        $html = @file_get_contents($checked_url . "/CHANGELOG.txt");
+        $html = @file_get_contents($this->url . "/CHANGELOG.txt");
         if (!$html)
             return false;
         
@@ -131,14 +132,14 @@ class Aura
         
     }
     
-    function get_index($checked_url)
+    public function get_index()
     {
         $out       = "";
         $generator = null;
         $out       = $this->colorize("no CHANGELOG.txt found \n", 'pur');
         
         #if no changelog.txt found, we scan index.php headers
-        $html = @file_get_contents($checked_url);
+        $html = @file_get_contents($this->url);
         //print_r($http_response_header);
         if (!$html)
             return false;
@@ -189,6 +190,4 @@ class Aura
 }
 
 $aura = new Aura();
-$url  = $aura->check_args();
-
-print($aura->get_changelog($url)) ? $aura->get_changelog($url) : print $aura->get_index($url);
+print($aura->get_changelog()) ? $aura->get_changelog() : print $aura->get_index();
